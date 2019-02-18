@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- 配置包扫描器 -->
+    <context:component-scan base-package="com.nbsp">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"></context:exclude-filter>
+    </context:component-scan>
+
+    <!-- 读取外部文件 -->
+    <context:property-placeholder location="classpath*:propertices/jdbc_mysql.properties"></context:property-placeholder>
+
+    <!-- 配置数据源 -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql:///eesy"/>
+        <property name="user" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+
+    <!-- 由IOC为Dao创建代理对象 -->
+
+   <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+       <property name="dataSource" ref="dataSource"></property>
+<!--
+       &lt;!&ndash; 指定 mybatis 配置文件所在的位置 &ndash;&gt;
+       <property name="configLocation" value="classpath:mybatis/MybatisConfig.xml"></property>
+       &lt;!&ndash; 指定 mapper.xml 文件所在的位置 &ndash;&gt;
+       <property name="mapperLocations" value="classpath:com/nbsp/Dao/*.xml"></property>-->
+   </bean>
+
+    <!--  为Dao创建代理对象(没有不能自动注入) -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.nbsp.Dao"></property>
+    </bean>
+
+
+    <!-- 配置事务通知 -->
+    <tx:advice transaction-manager="transactionManager" id="transaction">
+        <tx:attributes>
+            <tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="set*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 配置AOP -->
+    <aop:config>
+        <aop:pointcut id="pt1" expression="execution(* com.nbsp.Service.*.*(..))"></aop:pointcut>
+        <aop:advisor advice-ref="transaction"  pointcut-ref="pt1"></aop:advisor>
+    </aop:config>
+
+
+</beans>

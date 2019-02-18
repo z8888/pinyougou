@@ -1,0 +1,17 @@
+app.service("uploadFileService",function ($http) {
+
+    // 上传文件
+
+    this.uploadfile=function () {
+       var formdate= new FormData();
+       formdate.append("file",file.files[0]) //file 文件上传款的名
+        return $http({
+
+            method:"post",
+            url:"/upload.do",
+            data:formdate,
+            headers:{"Content-Type":undefined},
+            transformRequest:angular.identity
+        });
+    }
+})
